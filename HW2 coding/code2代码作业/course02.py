@@ -113,7 +113,7 @@ class FCN(object):
         self._num_layers = len(sizes)  # 记录神经网络的层数
         # 为隐藏层和输出层生成偏置向量b，还是以[784,30,10]为例，那么一共会生成2个偏置向量b，分别属于隐藏层和输出层，大小分别为30x1,10x1。
         """补全代码"""
-        self._biases = [np.random.randn(b, 1) for b in sizes[1:]]
+        self._biases = [np.random.randn(x, 1) for x in sizes[1:]]
         # 为隐藏层和输出层生成权重向量W, 以[784,30,10]为例，这里会生成2个权重向量w，分别属于隐藏层和输出层，大小分别是30x784, 10x30。
         """补全代码"""
         self._weights = [np.random.randn(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
@@ -178,6 +178,7 @@ class FCN(object):
             # 反向传播算法，运用链式法则求得对b和w的偏导
             """补全代码"""
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
+
             # 对小批量训练数据集中的每一个求得的偏导数进行累加
             nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
@@ -198,8 +199,8 @@ class FCN(object):
                 ``nabla_w`` are layer-by-layer lists of numpy arrays, similar
                 to ``self.biases`` and ``self.weights``.
         """
-        nabla_b = [np.zeros(b.shape) for b in self._biases]
-        nabla_w = [np.zeros(w.shape) for w in self._weights]
+        nabla_b = [np.zeros(b.shape) for b in self._biases]  # [[30, 1], [10, 1], [10, 1]]
+        nabla_w = [np.zeros(w.shape) for w in self._weights]  # [[30, 784], [10, 30], [10, 10]]
         # 前向传播，计算网络的输出
         activation = x
         # 一层一层存储全部激活值的列表
@@ -209,20 +210,20 @@ class FCN(object):
         for b, w in zip(self._biases, self._weights):
             # 利用 z = wt*x+b 依次计算网络的输出
             z = np.dot(w, activation) + b
-            zs.append(z)
+            zs.append(z)  # [[30, 1], [10, 1], [10, 1]]
             # 将每个神经元的输出z通过激活函数sigmoid
             activation = sigmoid(z)
             # 将激活值放入列表中暂存
-            activations.append(activation)
+            activations.append(activation)  # [[30, 1], [10, 1], [10, 1]]
 
         # 反向传播过程
 
         # 首先计算输出层的误差delta L
-        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])
+        delta = self.cost_derivative(activations[-1], y) * sigmoid_prime(zs[-1])  # [10, 1]
         # 反向存储 损失函数C对b的偏导数
-        nabla_b[-1] = delta
+        nabla_b[-1] = delta  # [10, 1]
         # 反向存储 损失函数C对w的偏导数
-        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
+        nabla_w[-1] = np.dot(delta, activations[-2].transpose())  # [10, 10]
         # 从第二层开始，依次计算每一层的神经元的偏导数
         for l in range(2, self._num_layers):
             z = zs[-l]
