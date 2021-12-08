@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/course05-code/dataset/
+/course05-code/data/
+.idea

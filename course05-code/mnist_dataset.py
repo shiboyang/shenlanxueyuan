@@ -1,17 +1,21 @@
 import os
+import random
+
 import cv2
 import torch.utils.data as data
 from PIL import Image
 from torch.utils.data.dataset import T_co
 
 
-class Rotate:
+class RandomRotate:
     def __call__(self, img):
-        pass
+        """Rotate an image to random degree"""
+        degree = random.choice([0, 90, 180, 270])
+        img = img.rotate(degree)
+        return img
 
     def __repr__(self):
         pass
-
 
 
 class MNISTDataSet(data.Dataset):
@@ -40,15 +44,14 @@ class MNISTDataSet(data.Dataset):
 
         self.data, self.targets = self._load_data(os.path.join(self.root, data_file))
 
-    @classmethod
-    def _load_data(cls, filepath):
+    def _load_data(self, filepath):
         img_path = []
         labels = []
         with open(filepath, 'r') as f:
             text = f.readline()
             while text:
                 _img_path, _label = text.strip().split(' ')
-                img_path.append(_img_path.strip())
+                img_path.append(os.path.join(self.root, _img_path.strip()))
                 labels.append(_label.strip())
                 text = f.readline()
 
@@ -59,8 +62,7 @@ class MNISTDataSet(data.Dataset):
 
     def __getitem__(self, index) -> T_co:
         img_path, target = self.data[index], int(self.targets[index])
-        img = cv2.imread(img_path)
-        img = Image.fromarray(img, mode='L')
+        img = Image.open(img_path)
 
         if self.transform is not None:
             img = self.transform(img)
